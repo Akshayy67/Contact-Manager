@@ -16,8 +16,6 @@
       src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"
     ></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <!-- Framer Motion -->
-    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
     <!-- Inter Font -->
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
@@ -42,7 +40,59 @@
 
     <script type="text/babel">
       const { useState, useEffect, useCallback } = React;
-      const { motion, AnimatePresence } = window.framerMotion;
+      
+      // Create simple motion components since Framer Motion isn't available in this context
+      const motion = {
+        div: ({ children, initial, animate, exit, whileHover, whileTap, layout, className, ...props }) => {
+          const [isVisible, setIsVisible] = useState(true);
+          const [isHovered, setIsHovered] = useState(false);
+          
+          useEffect(() => {
+            if (initial && initial.opacity === 0) {
+              setIsVisible(false);
+              setTimeout(() => setIsVisible(true), 50);
+            }
+          }, []);
+          
+          const style = {
+            opacity: isVisible ? (animate?.opacity ?? 1) : (initial?.opacity ?? 1),
+            transform: `scale(${isHovered && whileHover?.scale ? whileHover.scale : 1})`,
+            transition: 'all 0.2s ease-in-out'
+          };
+          
+          return React.createElement('div', {
+            ...props,
+            className,
+            style,
+            onMouseEnter: () => setIsHovered(true),
+            onMouseLeave: () => setIsHovered(false)
+          }, children);
+        },
+        button: ({ children, whileHover, whileTap, className, ...props }) => {
+          const [isHovered, setIsHovered] = useState(false);
+          const [isPressed, setIsPressed] = useState(false);
+          
+          const style = {
+            transform: `scale(${
+              isPressed && whileTap?.scale ? whileTap.scale : 
+              isHovered && whileHover?.scale ? whileHover.scale : 1
+            })`,
+            transition: 'all 0.1s ease-in-out'
+          };
+          
+          return React.createElement('button', {
+            ...props,
+            className,
+            style,
+            onMouseEnter: () => setIsHovered(true),
+            onMouseLeave: () => setIsHovered(false),
+            onMouseDown: () => setIsPressed(true),
+            onMouseUp: () => setIsPressed(false)
+          }, children);
+        }
+      };
+      
+      const AnimatePresence = ({ children }) => children;
 
       // API Configuration
       const API_BASE_URL = (() => {
@@ -51,13 +101,18 @@
         return async () => {
           for (const port of ports) {
             try {
+              console.log(`Trying to connect to port ${port}...`);
               const response = await fetch(
                 `http://localhost:${port}/api/contacts`
               );
               if (response.ok) {
+                console.log(`Successfully connected to port ${port}`);
                 return `http://localhost:${port}`;
+              } else {
+                console.log(`Port ${port} responded with status:`, response.status);
               }
             } catch (error) {
+              console.log(`Port ${port} failed:`, error.message);
               continue;
             }
           }
@@ -274,10 +329,13 @@
         useEffect(() => {
           const initializeApi = async () => {
             try {
+              console.log("Attempting to connect to API...");
               const url = await API_BASE_URL();
+              console.log("Successfully connected to:", url);
               setBaseUrl(url);
               setIsLoading(false);
             } catch (error) {
+              console.error("API connection failed:", error);
               showToast(
                 "Failed to connect to server. Please ensure the server is running.",
                 "error"
@@ -372,6 +430,7 @@
           return (
             <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-screen">
               <div className="text-xl">Loading...</div>
+              <div className="text-sm text-gray-400 mt-2">Attempting to connect to API...</div>
             </div>
           );
         }
@@ -383,12 +442,20 @@
                 Could not connect to server. Please ensure the server is
                 running.
               </div>
+              <div className="text-sm text-gray-400 mt-2">Check console for debugging info</div>
             </div>
           );
         }
 
         return (
           <div className="container mx-auto px-4 py-8 max-w-6xl">
+            {/* Debug Info */}
+            <div className="mb-4 p-3 bg-gray-700 rounded-lg text-sm">
+              <div>Status: Connected to {baseUrl}</div>
+              <div>Contacts: {contacts.length}</div>
+              <div>Filtered: {filteredContacts.length}</div>
+            </div>
+            
             <div className="flex justify-between items-center mb-8">
               <h1 className="text-4xl font-bold">Contact Manager</h1>
               <motion.button
