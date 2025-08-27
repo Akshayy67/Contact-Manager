@@ -21,6 +21,8 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
+    <!-- Configuration -->
+    <script src="config.js"></script>
     <script>
       tailwind.config = {
         theme: {
@@ -96,27 +98,26 @@
 
       // API Configuration
       const API_BASE_URL = (() => {
-        // Try to connect to different ports if the default one is not available
-        const ports = [3000, 3001, 3002, 3003, 3004];
         return async () => {
-          for (const port of ports) {
-            try {
-              console.log(`Trying to connect to port ${port}...`);
-              const response = await fetch(
-                `http://localhost:${port}/api/contacts`
-              );
-              if (response.ok) {
-                console.log(`Successfully connected to port ${port}`);
-                return `http://localhost:${port}`;
-              } else {
-                console.log(`Port ${port} responded with status:`, response.status);
-              }
-            } catch (error) {
-              console.log(`Port ${port} failed:`, error.message);
-              continue;
-            }
+          const config = window.contactManagerConfig;
+          if (!config || !config.backendUrl) {
+            throw new Error("Backend configuration not found");
           }
-          throw new Error("Could not connect to the server");
+          
+          console.log(`Attempting to connect to backend: ${config.backendUrl}`);
+          
+          try {
+            const response = await fetch(`${config.backendUrl}/api/contacts`);
+            if (response.ok) {
+              console.log(`Successfully connected to backend`);
+              return config.backendUrl;
+            } else {
+              throw new Error(`Backend responded with status: ${response.status}`);
+            }
+          } catch (error) {
+            console.error(`Failed to connect to backend:`, error);
+            throw new Error("Could not connect to the backend server");
+          }
         };
       })();
 
@@ -438,11 +439,20 @@
         if (!baseUrl) {
           return (
             <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-screen">
-              <div className="text-xl text-red-500">
-                Could not connect to server. Please ensure the server is
-                running.
+              <div className="text-center">
+                <div className="text-xl text-red-500 mb-4">
+                  Could not connect to backend server
+                </div>
+                <div className="text-sm text-gray-400 mb-4">
+                  Check console for debugging info
+                </div>
+                <div className="text-sm text-gray-400">
+                  Make sure to update the backend URL in config.js
+                </div>
+                <div className="mt-4 p-3 bg-gray-700 rounded-lg text-xs">
+                  <div>Current config: {JSON.stringify(window.contactManagerConfig || 'Not loaded')}</div>
+                </div>
               </div>
-              <div className="text-sm text-gray-400 mt-2">Check console for debugging info</div>
             </div>
           );
         }
