@@ -21,8 +21,6 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <!-- Configuration -->
-    <script src="config.js"></script>
     <script>
       tailwind.config = {
         theme: {
@@ -33,6 +31,25 @@
           },
         },
       };
+      
+      // Configuration embedded directly in HTML
+      window.contactManagerConfig = (() => {
+        const hostname = window.location.hostname;
+        console.log("Debug - Current hostname:", hostname);
+        
+        let config;
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+          config = { backendUrl: 'http://localhost:3000' };
+        } else {
+          config = { backendUrl: 'https://contact-manager-git-main-akshays-projects-06aa4db7.vercel.app' };
+        }
+        
+        console.log("Debug - Generated config:", config);
+        return config;
+      })();
+      
+      // Verify configuration is loaded
+      console.log("Debug - Final config:", window.contactManagerConfig);
     </script>
   </head>
   <body
@@ -100,7 +117,12 @@
       const API_BASE_URL = (() => {
         return async () => {
           const config = window.contactManagerConfig;
+          console.log("Debug - Config object:", config);
+          console.log("Debug - Config type:", typeof config);
+          console.log("Debug - Config keys:", config ? Object.keys(config) : 'null');
+          
           if (!config || !config.backendUrl) {
+            console.error("Config validation failed:", { config, hasBackendUrl: config?.backendUrl });
             throw new Error("Backend configuration not found");
           }
           
