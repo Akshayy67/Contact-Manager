@@ -9,12 +9,12 @@ const config = {
   
   // Development/Staging environment
   development: {
-    backendUrl: 'https://contact-manager-r6f8jinhf-akshays-projects-06aa4db7.vercel.app'
+    backendUrl: 'https://contact-manager-git-main-akshays-projects-06aa4db7.vercel.app'
   },
   
   // Production environment
   production: {
-    backendUrl: 'https://contact-manager-r6f8jinhf-akshays-projects-06aa4db7.vercel.app'
+    backendUrl: 'https://contact-manager-git-main-akshays-projects-06aa4db7.vercel.app'
   }
 };
 

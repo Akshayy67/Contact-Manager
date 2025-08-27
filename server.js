@@ -5,7 +5,15 @@ const app = express();
 const port = 3000;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:8000',
+    'http://localhost:3000',
+    'https://contact-manager-git-main-akshays-projects-06aa4db7.vercel.app',
+    'https://contact-manager-r6f8jinhf-akshays-projects-06aa4db7.vercel.app'
+  ],
+  credentials: true
+}));
 app.use(express.json());
 
 // Database setup
