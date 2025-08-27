@@ -125,25 +125,30 @@ app.get("/api/contacts/search", (req, res) => {
   });
 });
 
-// Start server
-const startServer = (port) => {
-  try {
-    app
-      .listen(port, () => {
-        console.log(`Server running at http://localhost:${port}`);
-      })
-      .on("error", (err) => {
-        if (err.code === "EADDRINUSE") {
-          console.log(`Port ${port} is busy, trying port ${port + 1}`);
-          startServer(port + 1);
-        } else {
-          console.error("Server error:", err);
-        }
-      });
-  } catch (err) {
-    console.error("Failed to start server:", err);
-    process.exit(1);
-  }
-};
+// Export for Vercel serverless
+module.exports = app;
 
-startServer(port);
+// Start server only if running locally
+if (process.env.NODE_ENV !== 'production') {
+  const startServer = (port) => {
+    try {
+      app
+        .listen(port, () => {
+          console.log(`Server running at http://localhost:${port}`);
+        })
+        .on("error", (err) => {
+          if (err.code === "EADDRINUSE") {
+            console.log(`Port ${port} is busy, trying port ${port + 1}`);
+            startServer(port + 1);
+          } else {
+            console.error("Server error:", err);
+          }
+        });
+    } catch (err) {
+      console.error("Failed to start server:", err);
+      process.exit(1);
+    }
+  };
+  
+  startServer(port);
+}
