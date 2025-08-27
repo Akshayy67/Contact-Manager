@@ -2,13 +2,25 @@
   "version": 2,
   "builds": [
     {
+      "src": "index.html",
+      "use": "@vercel/static"
+    },
+    {
       "src": "api/**/*.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
+      "src": "/",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/api/contacts/search",
+      "dest": "/api/contacts/search.js"
+    },
+    {
+      "src": "/api/contacts",
       "dest": "/api/contacts.js"
     }
   ]
